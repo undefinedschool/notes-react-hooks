@@ -2,6 +2,8 @@
 
 ## Why React Hooks?
 
+Recently React introduced Hooks, an addition to React which allows you to create functional components that can create and manage their own state. Because of this, Hooks drastically reduce the need for creating class components.
+
 ## `useState`
 
 for creating functional components with state.
