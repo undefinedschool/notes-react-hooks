@@ -1,5 +1,7 @@
 # Notas sobre React Hooks [WIP]
 
+### 👉 Ver [todas las notas](https://github.com/undefinedschool/notes)
+
 ## Por qué usar Hooks?
 
 Una de las últimas features importantes que React introdujo fueron los [Hooks](https://es.reactjs.org/blog/2019/02/06/react-v16.8.0.html), que, en un muy resumido resumen, nos permiten manejar estado dentro de [_componentes funcionales_](https://github.com/undefinedschool/notes-react-basics#functional-o-stateless-components), algo para lo cual antes necesitábamos utilizar [_Class Components_](https://github.com/undefinedschool/notes-react-basics#class-o-stateful-components) si o si. De esta forma, nuestro código (y el manejo del state) se simplifican muchísimo :D
