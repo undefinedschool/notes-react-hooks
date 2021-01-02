@@ -60,7 +60,7 @@ Acá es donde aparecen los famosos Hooks, que poponen una nueva API para resolve
 
 ## Algunos de los Hooks más comunes
 
-### [`useState`](https://reactjs.org/docs/hooks-state.html)
+### Estado del componente: [`useState`](https://reactjs.org/docs/hooks-state.html)
 
 Este Hook nos permite crear componentes funcionales que puedan manejar su propio _state_. `useState` es una función que retorna un _array_ con 2 valores (también se le dice tupla), el 1ro representa el state del componente y el 2do, una función que nos provee el hook para actualizar el state. Además, recibe un valor para inicializar el state.
 
@@ -133,9 +133,90 @@ function App() {
 
 En este caso, agregamos el state `counter`, inicializado en 0. Notemos también que `count` contiene el valor actual, por lo que no necesitamos acordarnos de [pasarle un callback para hacer referencia al valor previo del state](https://github.com/undefinedschool/notes-react-basics#modificando-el-state), como haríamos si estuviéramos usando `this.setState`).
 
-### `useEffect`
+### Component Lifecycle y side effects: [`useEffect`](https://reactjs.org/docs/hooks-effect.html)
 
 [WIP]
+
+Ok, y si ya no necesitamos clases, cómo reemplazamos los métodos de lifecycle de los componentes? La solución que proveen los hooks a esto es dejar de pensar en el lifecycle como lo hacíamos anteriormente (con la lógica del componente repartida entre diferentes métodos) y pasar a pensar en términos de **sincronización**: necesitamos sincronizar diferentes eventos/acciones que suceden fuera de la lógica de un componente de React (API request, manipulación del DOM) con algo interno del mismo (state).
+
+Pensar en términos de _sincronización_ en lugar de eventos relacionados al _ciclo de vida_, nos permite agrupar fácilmente la lógica relacionada. Para manejar estos eventos (o [_side effects_](https://github.com/undefinedschool/notes-fp-js#side-effects)), utilizamos el hook [`useEffect`](https://reactjs.org/docs/hooks-effect.html).
+
+```js
+import React, { useState, useEffect } from 'react';
+
+function App() {
+  const [text, setText] = useState('0 clicks given.');
+
+  useEffect(() => console.log(`Button text has changed to '${text}'.`), [text])
+
+  return <button onClick={() => setText('clicked!')}>{text}</button>;
+}
+```
+
+`useEffect` nos permite manejar _side effects_ dentro de un componente. Recibe un callback como parámetro y, opcionalmente, un array, conocido como _dependency array_. El callback define la acción a ejecutar y los valores dentro del dependency array (opcional) definen cómo sincrinizar estas acciones. En el ejemplo de arriba, el callback va ejecutarse cada vez que el valor de `text` (que forma parte del state) cambie. Es por esto último que hablamos de un _array de dependencias_.
+
+Si necesitáramos realizar un _fetch_ a una cierta API, cada vez que el valor `id` cambie, podríamos hacer algo como
+
+```js
+// ...
+useEffect(() => {
+  setLoader(true);
+  
+  fetchAPI(`BASE_URL/${id}`)
+    .then(repos => {
+      setRepos(repos);
+      setLoader(false);
+    })
+    .catch(/* ... */)
+}, [id]);
+// ...
+```
+
+`useEffect` nos va a permitir entonces simular las diferentes etapas del _lifecycle_ del componente. Por ejemplo, si quisiéramos ejecutar cierta acción cuando el componente termina de montarse por 1ra y única vez (como haríamos con el método `componentDidMount`), podemos definir el dependency array como un array vacío `[]`
+
+```js
+import React, { useState, useEffect } from 'react';
+
+function App() {
+  const [text, setText] = useState('0 clicks given.');
+
+  useEffect(() => console.log('App component has been mounted.'), []);
+
+  return <button onClick={() => setText('clicked!')}>{text}</button>;
+}
+```
+
+Y si queremos que el side effect se ejecute cada vez que el componente se vuelva a renderizar? En ese caso no le pasamos el dependency array (recordemos que este parámetro es opcional).
+
+```js
+import React, { useState, useEffect } from 'react';
+
+function App() {
+  const [text, setText] = useState('0 clicks given.');
+
+  useEffect(() => console.log('App component has been re-rendered!'));
+
+  return <button onClick={() => setText('clicked!')}>{text}</button>;
+}
+```
+
+También **podemos definir múltiples side effects dentro de un componente**. Por ejemplo, si queremos leer/escribir un valor (como un contador) del state en `localStorage`, chequeando la 1ra vez si este valor ya existe y luego mantenerlo sincronizado cada vez que cambie, podemos hacer
+
+```js
+// ...
+const [counter, setCounter] = useState(0);
+
+useEffect(() => {
+  const counter = localStorage.getItem('counter');
+
+  if (counter) setCounter(Number.parseInt(counter));
+}, []);
+
+useEffect(() => {
+  localStorage.setItem('counter', counter);
+}, [counter]);
+// ...
+```
 
 ### `useReducer`
 
@@ -153,4 +234,4 @@ En este caso, agregamos el state `counter`, inicializado en 0. Notemos también 
 
 [WIP]
 
-Para minimizar la duplicación de código y lógica de nuestros hooks (_DRY_), podemos extraer los patrones que encontremos repetitivos a nuevos componentes, que seteen el state (usando `useState`) y luego retornen un array que contenga los valores `[state, setState, <optional>]`.
+Para minimizar la duplicación de código y lógica de nuestros hooks (_DRY_), podemos extraer los patrones que encontremos repetitivos a nuevos componentes, que seteen el state (usando `useState`) y luego retornen un array que contenga los valores `[state, setState, <optional>]`. De esta forma, podremos reutilizar lógica entre diferentes componentes, desacoplándola de la UI.
