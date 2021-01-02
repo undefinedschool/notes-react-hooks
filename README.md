@@ -186,7 +186,7 @@ function App() {
 }
 ```
 
-Y si queremos que el side effect se ejecute cada vez que el componente se vuelva a renderizar? En ese caso no le pasamos el dependency array (recordemos que este parámetro es opcional).
+Y si queremos que el side effect se ejecute cada vez que el componente se vuelva a renderizar con _cualquier_ cambio en el state? En ese caso no le pasamos el dependency array (recordemos que este parámetro es opcional).
 
 ```js
 import React, { useState, useEffect } from 'react';
