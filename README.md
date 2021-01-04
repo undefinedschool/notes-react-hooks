@@ -141,6 +141,10 @@ Ok, y si ya no necesitamos clases, cómo reemplazamos los métodos de lifecycle 
 
 Pensar en términos de _sincronización_ en lugar de eventos relacionados al _ciclo de vida_, nos permite agrupar fácilmente la lógica relacionada. Para manejar estos eventos (o [_side effects_](https://github.com/undefinedschool/notes-fp-js#side-effects)), utilizamos el hook [`useEffect`](https://reactjs.org/docs/hooks-effect.html).
 
+`useEffect` nos permite manejar _side effects_ dentro de un componente. Recibe un callback como parámetro y, opcionalmente, un array, conocido como _dependency array_. El callback define la acción a ejecutar y los valores dentro del dependency array (opcional) definen cómo sincronizar estas acciones. 
+
+#### Ejecutar `useEffect` si hay cambios en alguna dependencia (similar a `componentDidUpdate`)
+
 ```js
 import React, { useState, useEffect } from 'react';
 
@@ -153,7 +157,7 @@ function App() {
 }
 ```
 
-`useEffect` nos permite manejar _side effects_ dentro de un componente. Recibe un callback como parámetro y, opcionalmente, un array, conocido como _dependency array_. El callback define la acción a ejecutar y los valores dentro del dependency array (opcional) definen cómo sincrinizar estas acciones. En el ejemplo de arriba, el callback va ejecutarse cada vez que el valor de `text` (que forma parte del state) cambie. Es por esto último que hablamos de un _array de dependencias_.
+En el ejemplo de arriba, el callback va ejecutarse cada vez que el valor de `text` (que forma parte del state) cambie. Es por esto último que hablamos de un _array de dependencias_.
 
 Si necesitáramos realizar un _fetch_ a una cierta API, cada vez que el valor `id` cambie, podríamos hacer algo como
 
@@ -172,6 +176,8 @@ useEffect(() => {
 // ...
 ```
 
+#### Ejecutar `useEffect` sólo en el 1er render (cuando el componente se monta)
+
 `useEffect` nos va a permitir entonces simular las diferentes etapas del _lifecycle_ del componente. Por ejemplo, si quisiéramos ejecutar cierta acción cuando el componente termina de montarse por 1ra y única vez (como haríamos con el método `componentDidMount`), podemos definir el dependency array como un array vacío `[]`
 
 ```js
@@ -185,6 +191,10 @@ function App() {
   return <button onClick={() => setText('clicked!')}>{text}</button>;
 }
 ```
+
+De esta forma, el efecto (el callback que le pasamos a `useEffect`) va a ejecutarse una única vez.
+
+#### Ejecutar `useEffect` en cada nuevo render
 
 Y si queremos que el side effect se ejecute cada vez que el componente se vuelva a renderizar con _cualquier_ cambio en el state? En ese caso no le pasamos el dependency array (recordemos que este parámetro es opcional).
 
@@ -216,6 +226,36 @@ useEffect(() => {
   localStorage.setItem('counter', counter);
 }, [counter]);
 // ...
+```
+
+#### _cleanup_ (similar a `componentWillUnmount`)
+
+El hook `useEffect` también provee la posibilidad de ejecutar una función de _cleanup_ después de ejecutarse, para lo cual debemos retornar una función al final del mismo.
+
+```js
+import React, { useState, useEffect }
+from "react";
+
+export const FunctionComponent = () => {
+  const [counter, setCounter] = useState(0);
+
+  useEffect(() => {
+    console.log("run for every component
+render");
+
+    return () => {
+      console.log("run before the next effect
+and when component unmounts");
+    };
+  }, [counter]);
+
+  return (
+    <button onClick={()
+=> setCounter(counter + 1)}>
+      Click to increment counter and trigger effect
+    </button>
+  );
+};
 ```
 
 ### `useRef`
