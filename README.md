@@ -1,4 +1,4 @@
-# Notas sobre React Hooks [WIP]
+# React Hooks [WIP]
 
 ### 👉 Ver [todas las notas](https://github.com/undefinedschool/notes)
 
