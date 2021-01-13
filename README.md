@@ -279,3 +279,11 @@ and when component unmounts");
 [WIP]
 
 Para minimizar la duplicación de código y lógica de nuestros hooks (_DRY_), podemos extraer los patrones que encontremos repetitivos a nuevos componentes, que seteen el state (usando `useState`) y luego retornen un array que contenga los valores `[state, setState, <optional>]`. De esta forma, podremos reutilizar lógica entre diferentes componentes, desacoplándola de la UI.
+
+## Takeaways sobre Hooks
+
+- Son funciones
+- Los _Custom Hooks_ son funciones que llaman a otros hooks (principalmente `useState`)
+- Siempre deben declararse al inicio de los componentes (top-level)
+- Los Hooks sólo pueden utilizarse dentro de _Function Components_ 
+- No pueden utilizarse dentro de un condicional o ciclo
