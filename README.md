@@ -296,6 +296,8 @@ function Profile ({ username }) {
 
 Este hook nos permite acceder directamente a un valor (ej: un nodo del DOM) directamente y mantener una referencia al mismo aún cuando el componente sea re-renderizado, durante su ciclo de vida. En cierta forma funciona como un _hack_ que rompe un poco el paradigma que nos plantea React, ya que estamos accediendo al DOM directamente.
 
+Además, cuando el valor de alguna referencia cambie, el componente no va a re-renderizarse, como si sucede cuando hay cambios en el state.
+
 [WIP]
 
 ### `useReducer`
