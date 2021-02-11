@@ -62,6 +62,8 @@ Acá es donde aparecen los famosos Hooks, que poponen una nueva API para resolve
 
 ### Estado del componente: [`useState`](https://reactjs.org/docs/hooks-state.html)
 
+> _tl;dr_ nos permite preservar valores entre renders y triggerear un re-render del componente
+
 Este Hook nos permite crear componentes funcionales que puedan manejar su propio _state_. `useState` es una función que retorna un _array_ con 2 valores (también se le dice tupla), el 1ro representa el state del componente y el 2do, una función que nos provee el hook para actualizar el state. Además, recibe un valor para inicializar el state.
 
 En el siguiente ejemplo, el valor inicial del state (`text`) es un string vacío y `setText` es la función que usaremos para actualizarlo.
@@ -79,7 +81,9 @@ function App() {
 
 > **Nota:** por convención, al método que utilizamos para actualizar el estado se le suele poner el prefijo _set_ (ej: si el state es `text`, el método será `setState`)
 
-Este mismo código, usando clases (Class Components) se escribiría de la siguiente forma 
+Es muy importante tener en cuenta que, a diferencia de lo que pasa con `this.setState()` en un Class Componente, **el valor que recibe la funcion para actualizar el state** (también conocida como _state dispatch function_) **no se mergea con el state actual, sino que lo sobreeescribe**. Es por esto que, en el caso de querer representar el valor del state con un objeto por ejemplo, en lugar de valores individuales, es mejor utilizar el hook [`useReducer`](https://github.com/undefinedschool/notes-react-hooks#usereducer).
+
+El ejemplo anterior, usando clases (Class Components) se escribiría de la siguiente forma 
 
 ```js
 import React from 'react';
@@ -123,7 +127,7 @@ function App() {
   return (
     <button onClick={() => {
       setText('button clicked');
-      setCounter(counter + 1);
+      setCounter(counter => counter + 1);
     }}>
       {text} {counter ? `${counter} times.` : null}
     </button>
@@ -131,11 +135,29 @@ function App() {
 }
 ```
 
+> **Nota:** al igual que como sucede con `this.setState()` en un Class Component, cuando queremos actualizar estado basado en un estado anterior (como en el ejemplo de arriba), conviene pasarle un callback para que React pueda garantizarnos que el valor del state que utiliza es el actual, dado que son operaciones asincrónicas
+
 En este caso, agregamos el state `counter`, inicializado en 0. Notemos también que `count` contiene el valor actual, por lo que no necesitamos acordarnos de [pasarle un callback para hacer referencia al valor previo del state](https://github.com/undefinedschool/notes-react-basics#modificando-el-state), como haríamos si estuviéramos usando `this.setState`).
 
-### Component Lifecycle y side effects: [`useEffect`](https://reactjs.org/docs/hooks-effect.html)
+#### Lazy State Initialization
 
-[WIP]
+Si el estado inicial de un valor del state depende de un cálculo pesado, podemos pasarle un callback como valor inicial a `useState`. Esto se conoce como [_lazy state initialization_](https://kentcdodds.com/blog/use-state-lazy-initialization-and-function-updates) y va a hacer que el cálculo se ejecute 1 vez, en el render inicial y no en cada re-render del componente.
+
+```js
+import React, { useState } from 'react';
+
+function bigCompute() {
+  // ...
+}
+
+function App() {
+  const [count, setCount] = useState(() => bigCompute());
+
+  // ...
+}
+```
+
+### Component Lifecycle y side effects: [`useEffect`](https://reactjs.org/docs/hooks-effect.html)
 
 Ok, y si ya no necesitamos clases, cómo reemplazamos los métodos de lifecycle de los componentes? La solución que proveen los hooks a esto es dejar de pensar en el lifecycle como lo hacíamos anteriormente (con la lógica del componente repartida entre diferentes métodos) y pasar a pensar en términos de **sincronización**: necesitamos sincronizar diferentes eventos/acciones que suceden fuera de la lógica de un componente de React (API request, manipulación del DOM) con algo interno del mismo (state).
 
@@ -230,62 +252,100 @@ useEffect(() => {
 
 #### _cleanup_ (similar a `componentWillUnmount`)
 
-El hook `useEffect` también provee la posibilidad de ejecutar una función de _cleanup_ después de ejecutarse, para lo cual debemos retornar una función al final del mismo.
+El hook `useEffect` también provee la posibilidad de ejecutar una función de _cleanup_ (por ejemplo, para remover _event listeners_ o suscripciones a alguna API) después de ejecutarse, para lo cual debemos retornar una función al final del mismo. 
+
+**Este hook va a ejecutarse justo antes de que el effect sea ejecutado en un nuevo render ó el componente sea removido del DOM**, evitando así los memory leaks.
 
 ```js
-import React, { useState, useEffect }
-from "react";
+import React, { useState, useEffect };
 
-export const FunctionComponent = () => {
-  const [counter, setCounter] = useState(0);
+import { subscribe, unsubscribe } from './api';
+
+function Profile ({ username }) {
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    console.log("run for every component
-render");
+    subscribe(username, setProfile);
 
     return () => {
-      console.log("run before the next effect
-and when component unmounts");
-    };
-  }, [counter]);
+      unsubscribe(username);
+      setProfile(null);
+    }
+  }, [username])
+
+  if (!profile) {
+    return <p>Loading...</p>;
+  }
 
   return (
-    <button onClick={()
-=> setCounter(counter + 1)}>
-      Click to increment counter and trigger effect
-    </button>
+    <>
+      <h1>@{profile.login}</h1>
+      <img
+        src={profile.avatar_url}
+        alt={`Avatar for ${profile.login}`}
+      />
+      <p>{profile.bio}</p>
+    </>
   );
-};
+}
 ```
 
 ### `useRef`
+
+> _tl;dr_ nos permite preservar valores entre renders, sin triggerear un re-render del componente.
+
+Este hook nos permite acceder directamente a un valor (ej: un nodo del DOM) directamente y mantener una referencia al mismo aún cuando el componente sea re-renderizado, durante su ciclo de vida. En cierta forma funciona como un _hack_ que rompe un poco el paradigma que nos plantea React, ya que estamos accediendo al DOM directamente.
 
 [WIP]
 
 ### `useReducer`
 
-[WIP]
-
-### `useMemo`
+> _tl;dr_ nos permite manejar data/state entre diferentes componentes.
 
 [WIP]
 
-### `useCallback`
+### `useContext`
+
+> _tl;dr_ para acceder a la `Context API` y manejar el state compartido entre diferentes componentes, evitando el _prop-drilling_
 
 [WIP]
 
 ## Custom Hooks
 
-[WIP]
+Antes de que aparecieran los Hooks, la forma de compartir lógica de estado entre componentes eran utilizando [Higher-Order Components](https://github.com/undefinedschool/notes-react-advanced/#higher-order-components) y [Render Props](https://github.com/undefinedschool/notes-react-advanced/#render-props). Con la introducción de los Hooks, esto se simplifica bastante, ya que al ser los Hooks simplemente funciones, podemos extraer lógica que queremos reutilizar a funciones auxiliares, conocidas como _Custom Hooks_ y luego invocarlas desde los diferentes componentes.
 
-Para minimizar la duplicación de código y lógica de nuestros hooks (_DRY_), podemos extraer los patrones que encontremos repetitivos a nuevos componentes, que seteen el state (usando `useState`) y luego retornen un array que contenga los valores `[state, setState, <optional>]`. De esta forma, podremos reutilizar lógica entre diferentes componentes, desacoplándola de la UI.
+### Ejemplo: `useFetch`
 
-> **Nota:** por convención, el nombre de un Custom Hook suele llevar el prefijo `use...` (ej: `useFetch`).
+Supongamos que queremos evitar duplicar la lógica de _fetching_ de datos de una API, algo que necesitaríamos en distintos componentes. Para esto, vamos a crear el Custom Hook `useFetch` (tener en cuenta que esto es un ejemplo, se recomienda utilizar [`use-http`](https://use-http.com/) en lugar de crear nuestro propio hook).
 
-## Takeaways sobre Hooks
+Nuestro hook necesita mantener algo de estado: al menos `url` y `options` (para configurar el fetch) en el estado y funciones para setear las mismas (`setUrl`, `setOptions`). Además, necesitaremos cierta información sobre el request, si se encuentra pendiente, ya finalizó u ocurrió algún error, para actualizar nuestra UI en consecuencia.
 
-- Son funciones
-- Los _Custom Hooks_ son funciones que llaman a otros hooks (principalmente `useState`)
-- Siempre deben declararse al inicio de los componentes (top-level)
-- Los Hooks sólo pueden utilizarse dentro de _Function Components_ 
-- No pueden utilizarse dentro de un condicional o ciclo
+- data (la data que retorna el request)
+- error (si el request falla por alguna razón)
+- loading (un booleano que indica si el request finalizó y ya tenemos la respuesta)
+
+Además, vamos a querer ejecutar un request cada vez que `url` u `options` cambien. Para esto, podemos utilizar `useEffect`.
+
+```js
+import { useEffect, useState } from 'react';
+
+function useFetch(url, options) {
+  const [data, setData] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(
+    () =>
+      fetch(url, options)
+        .then(response => response.json())
+        .then(data => setData(data))
+        .catch(e => setError(e))
+        .finally(() => setLoading(false)),
+    [url, options]
+  );
+
+  return [data, loading, error];
+}
+
+export default useFetch;
+```
