@@ -298,6 +298,8 @@ Este hook nos permite acceder directamente a un valor (ej: un nodo del DOM) dire
 
 Además, cuando el valor de alguna referencia cambie, el componente no va a re-renderizarse, como si sucede cuando hay cambios en el state.
 
+**Rule of thumb:** cuando necesitemos trackear estado en un componente sin disparar un re-render del mismo, podemos usar `useRef` para crear una variable de instancia que nos permita guardar esta referencia (y preservarla entre renders).
+
 [WIP]
 
 ### `useReducer`
